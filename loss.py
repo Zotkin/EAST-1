@@ -1,8 +1,6 @@
 import torch
 from torch.autograd import Variable
 
-
-### 此处默认真实值和预测值的格式均为 bs * W * H * channels
 import torch
 import torch.nn as nn
 
@@ -25,17 +23,14 @@ def dice_coefficient(y_true_cls, y_pred_cls,
 class TowerLoss(nn.Module):
     def __init__(self):
         super(TowerLoss, self).__init__()
-        return 
-    
+
     def forward(self, y_true_cls, y_pred_cls, y_true_geo, y_pred_geo, training_mask):
         classification_loss = dice_coefficient(y_true_cls, y_pred_cls, training_mask)
         # scale classification loss to match the iou loss part
         classification_loss *= 0.01
 
         # d1 -> top, d2->right, d3->bottom, d4->left
-    #     d1_gt, d2_gt, d3_gt, d4_gt, theta_gt = tf.split(value=y_true_geo, num_or_size_splits=5, axis=3)
         d1_gt, d2_gt, d3_gt, d4_gt, theta_gt = torch.split(y_true_geo, 1, 1)
-    #     d1_pred, d2_pred, d3_pred, d4_pred, theta_pred = tf.split(value=y_pred_geo, num_or_size_splits=5, axis=3)
         d1_pred, d2_pred, d3_pred, d4_pred, theta_pred = torch.split(y_pred_geo, 1, 1)
         area_gt = (d1_gt + d3_gt) * (d2_gt + d4_gt)
         area_pred = (d1_pred + d3_pred) * (d2_pred + d4_pred)
