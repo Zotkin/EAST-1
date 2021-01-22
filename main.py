@@ -93,7 +93,7 @@ def main():
     init_weights(model, init_type=cfg.init_type)
     cudnn.benchmark = True
     
-    criterion = LossFunc()
+    criterion = TowerLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=10000, gamma=0.94)
     
