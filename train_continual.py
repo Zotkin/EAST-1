@@ -7,19 +7,38 @@ from torch import nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
-from data_utils import OcrDataset
+from datasets import EastDataset, get_filenames_for_this_stage
 from loss import TowerLoss, PODLoss
 from model import East
 
 
 def train(config: Dict[str, Any]):
 
-    dataset_train = OcrDataset() # todo
-    dataset_valid = OcrDataset() # todo
+    filenames_df = ... # here goes reading from dataiku
+
+    train_df = filenames_df[filenames_df['split'] == "train"]
+    valid_df = filenames_df[filenames_df['split'] == "valid"]
+
+    train_image_filenames, train_boxes_filenames, train_memory_flags = get_filenames_for_this_stage(train_df,
+                                                                                                    stage=config['stage'])
+    valid_image_filenames, valid_boxes_filenames, valid_memory_flags = get_filenames_for_this_stage(valid_df,
+                                                                                                    stage=config['stage'])
+
+    dataset_train = EastDataset(img_paths=train_image_filenames,
+                                label_paths=train_boxes_filenames,
+                                memory_flags=train_memory_flags,
+                                size=config['target_img_size'])
+
+    dataset_valid = EastDataset(img_paths=valid_image_filenames,
+                                label_paths =valid_boxes_filenames,
+                                memory_flags=valid_memory_flags,
+                                size=config['target_img_size'])
+
     train_loader = DataLoader(dataset_train,
                               batch_size=config['batch_size'],
                               shuffle=True,
                               num_workers=config['num_workers'])
+
     valid_loader = DataLoader(dataset_valid,
                               batch_size=config['batch_size'],
                               shuffle=False,
