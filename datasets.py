@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import os
 
 import torch
@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 import cv2
 import numpy as np
 import csv
+import pandas as pd
 
 from icdar import generate_data
 
@@ -99,3 +100,24 @@ class EastDataset(Dataset):
 
         return images, score_maps, geo_maps, training_masks, memory_flags
 
+
+def get_filenames_for_this_stage(df: pd.DataFrame, stage: int) -> Tuple[List[str],List[str],List[bool]]:
+    """
+    df should look like that
+
+    |img_filename|bbox_filename|stage|
+    |    str     |    str      | int |
+   Args:
+        df:
+        stage:
+
+    Returns:
+
+    """
+
+    this_stage_df = df[df['stage'] <= stage]
+
+    img_filenames = list(this_stage_df['img_filename'])
+    bbox_filenames = list(this_stage_df['bbox_filename'])
+    memory_flags = list(this_stage_df['stage'] < stage)
+    return img_filenames, bbox_filenames, memory_flags
