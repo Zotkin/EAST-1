@@ -1,26 +1,19 @@
-import torch
-from torch.autograd import Variable
-import os
-from torch import nn
 from torch.optim import lr_scheduler
-from torch.nn.utils.rnn import pack_padded_sequence
 from torch.utils.data import DataLoader
-from torchvision import transforms
 from model import East
 from loss import *
-from data_utils import custom_dset, collate_fn
+from data_utils import OcrDataset, collate_fn
 import time
-from tensorboardX import SummaryWriter
 import config as cfg
 from utils.init import *
-from utils.util import *
 from utils.save import *
 from utils.myzip import *
+
+from utils.util import AverageMeter
 import torch.backends.cudnn as cudnn
 from eval import predict
 from hmean import compute_hmean
-import zipfile
-import glob
+
 import warnings
 import numpy as np
 
@@ -71,7 +64,7 @@ def main():
     train_img = os.path.join(train_root_path, 'img')
     train_gt  = os.path.join(train_root_path, 'gt')
 
-    trainset = custom_dset(train_img, train_gt)
+    trainset = OcrDataset(train_img, train_gt)
     train_loader = DataLoader(trainset, batch_size=cfg.train_batch_size_per_gpu*cfg.gpu,
         shuffle=True, collate_fn=collate_fn, num_workers=cfg.num_workers)
     print('EAST <==> Prepare <==> Batch_size:{} <==> Begin'.format(cfg.train_batch_size_per_gpu*cfg.gpu))

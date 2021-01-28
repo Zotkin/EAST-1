@@ -228,11 +228,11 @@ class East(nn.Module):
         self.unpool3 = nn.Upsample(scale_factor=2, mode='bilinear')
     
     def forward(self,images):
-        images = mean_image_subtraction(images)
-        _, f = self.resnet(images)
-        h = f[3]  # bs 2048 w/32 h/32
+        images = mean_image_subtraction(images) # TODO this should happen in dataloader
+        _, featuremaps = self.resnet(images)
+        h = featuremaps[3]  # bs 2048 w/32 h/32
         g = (self.unpool1(h)) #bs 2048 w/16 h/16
-        c = self.conv1(torch.cat((g, f[2]), 1))
+        c = self.conv1(torch.cat((g, featuremaps[2]), 1))
         c = self.bn1(c)
         c = self.relu1(c)
         
@@ -240,7 +240,7 @@ class East(nn.Module):
         h = self.bn2(h)
         h = self.relu2(h)
         g = self.unpool2(h) # bs 128 w/8 h/8
-        c = self.conv3(torch.cat((g, f[1]), 1))
+        c = self.conv3(torch.cat((g, featuremaps[1]), 1))
         c = self.bn3(c)
         c = self.relu3(c)
 
@@ -248,7 +248,7 @@ class East(nn.Module):
         h = self.bn4(h)
         h = self.relu4(h)
         g = self.unpool3(h) # bs 64 w/4 h/4
-        c = self.conv5(torch.cat((g, f[0]), 1))
+        c = self.conv5(torch.cat((g, featuremaps[0]), 1))
         c = self.bn5(c)
         c = self.relu5(c)
         
@@ -268,4 +268,4 @@ class East(nn.Module):
         angle_map = (angle_map - 0.5) * math.pi / 2
 
         F_geometry = torch.cat((geo_map, angle_map), 1) # bs 5 w/4 w/4
-        return F_score, F_geometry
+        return featuremaps, F_score, F_geometry

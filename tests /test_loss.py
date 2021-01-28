@@ -44,5 +44,7 @@ def test_PODLoss(featuremaps, scoremaps):
     scoremaps_a, scoremaps_b = scoremaps
     loss_object = PODLoss()
     loss = loss_object(featuremaps_a, featuremaps_b, scoremaps_a, scoremaps_b)
-    assert type(loss) == torch.Tensor
-    assert type(loss.item()) == float
+    assert len(loss) == 3
+    for term in loss:
+        assert type(term) == torch.Tensor
+        assert type(term.item()) == float

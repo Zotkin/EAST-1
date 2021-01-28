@@ -1,12 +1,15 @@
 import os
 import math
 import random
+from typing import List
+
 import torch
 import torchvision.transforms as transforms
 from torch.utils import data
 import glob as gb
 import numpy as np
 import cv2
+import pandas as pd
 import csv
 import sys
 import matplotlib.pyplot as plt
@@ -15,6 +18,7 @@ from shapely.geometry import Polygon
 from PIL import Image
 import warnings
 from geo_map_cython_lib import gen_geo_map
+import dataiku
 
 
 
@@ -949,7 +953,40 @@ def transform_for_train(img):
     transforms.Compose(transform_list)
     return transform(image)
 
-class custom_dset(data.Dataset):
+class DataikuOcrDataset(data.Dataset):
+
+    def __init__(self,
+                 image_paths: List[str],
+                 bbox_paths: List[str],
+                 memory_flags: List[bool],
+                 bucket: dataiku.Folder,
+                transforms):
+        # todo add check that there are same number of img, bbox and flags
+        self.image_paths = image_paths
+        self.bbox_paths = bbox_paths
+        self.memory_flags = memory_flags
+        self.bucket = bucket
+        self.transforms = transforms
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        img = self.get_img_from_bucket(idx)
+        scores, geometry = self.get_bbox_from_bucket(idx)
+        flag = self.memory_flags[idx]
+        transformed_img = self.transforms(img)
+
+        return transformed_img, scores, geometry, flag
+
+    def get_img_from_bucket(self, idx) -> Image:
+
+        return Image.fromarray(np.random.randint(0,255, size=(256, 256, 3)))
+
+
+    def get_bbox_from_bucket(self, idx):
+        pass
+
+class OcrDataset(data.Dataset):
     def __init__(self, img_root, txt_root, vis = False):
         
         self.img_path_list, self.img_name_list = get_images(img_root)

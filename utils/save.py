@@ -3,7 +3,7 @@ import os
 import shutil
 import datetime
 from utils.util import *
-# this is for weight
+
 def save_checkpoint(state, epoch, filename='checkpoint.pth.tar'):
     """[summary]
 

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -28,7 +28,12 @@ class TowerLoss(nn.Module):
         super(TowerLoss, self).__init__()
         # todo add device handling
 
-    def forward(self, y_true_cls, y_pred_cls, y_true_geo, y_pred_geo, training_mask):
+    def forward(self,
+                y_true_cls: torch.Tensor,
+                y_pred_cls: torch.Tensor,
+                y_true_geo: torch.Tensor,
+                y_pred_geo: torch.Tesnor,
+                training_mask: torch.Tensor):
         classification_loss = dice_coefficient(y_true_cls, y_pred_cls, training_mask)
         # scale classification loss to match the iou loss part
         classification_loss *= 0.01
@@ -101,7 +106,7 @@ class PODLoss(nn.Module):
                 featuremaps_teacher: List[torch.Tensor],
                 featuremaps_student: List[torch.Tensor],
                 logits_teacher: torch.Tensor,
-                logits_student: torch.Tensor) -> torch.Tensor:
+                logits_student: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         width_losses = []
         heght_losses = []
         for featuremap_teacher, featuremap_student in zip(featuremaps_teacher, featuremaps_student):
@@ -113,7 +118,7 @@ class PODLoss(nn.Module):
 
         flat_loss = self.pod_flat_loss(logits_teacher, logits_student)
 
-        return self.width_coef * width_loss + self.height_coef*height_loss + self.flat_coef*flat_loss
+        return self.width_coef * width_loss , self.height_coef*height_loss , self.flat_coef*flat_loss
 
 
 
