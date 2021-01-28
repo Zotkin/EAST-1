@@ -98,5 +98,5 @@ def train(config: Dict[str, Any]):
                         log_valid['height'].append(height_loss)
                         log_valid['flat'].append(flat_loss)
         message = f"Valid Epoch {epoch}: {' '.join([f'{key}:{torch.mean(torch.tensor(value))}' for key, value in log_valid.items()])}"
-        logging.log(message)
+        logging.info(message)
         # todo add saving code (based on dataiku.get_upload_stream)
