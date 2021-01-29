@@ -98,7 +98,15 @@ class EastDataset(Dataset):
         training_masks = torch.stack(training_masks)
         memory_flags = torch.stack(memory_flags)
 
-        return images, score_maps, geo_maps, training_masks, memory_flags
+        out = {
+            "images": images,
+            "score_maps": score_maps,
+            "geo_maps": geo_maps,
+            "training_masks": training_masks,
+            "memory_flags": memory_flags
+        }
+
+        return out
 
 
 def get_filenames_for_this_stage(df: pd.DataFrame, stage: int) -> Tuple[List[str],List[str],List[bool]]:
