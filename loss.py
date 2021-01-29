@@ -32,7 +32,7 @@ class TowerLoss(nn.Module):
                 y_true_cls: torch.Tensor,
                 y_pred_cls: torch.Tensor,
                 y_true_geo: torch.Tensor,
-                y_pred_geo: torch.Tesnor,
+                y_pred_geo: torch.Tensor,
                 training_mask: torch.Tensor):
         classification_loss = dice_coefficient(y_true_cls, y_pred_cls, training_mask)
         # scale classification loss to match the iou loss part
@@ -84,6 +84,8 @@ class PODFlatLoss(nn.Module):
     def forward(self,
                 teacher_logits: torch.Tensor,
                 student_logits: torch.Tensor) -> torch.Tensor:
+        if teacher_logits.shape[0] == 0:
+            return torch.tensor(0.)
         flattened_teacher_logits = torch.flatten(teacher_logits, start_dim=1)
         flattened_student_logits = torch.flatten(student_logits, start_dim=1)
         return F.l1_loss(flattened_student_logits, flattened_teacher_logits)
@@ -106,7 +108,15 @@ class PODLoss(nn.Module):
                 featuremaps_teacher: List[torch.Tensor],
                 featuremaps_student: List[torch.Tensor],
                 logits_teacher: torch.Tensor,
-                logits_student: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+                logits_student: torch.Tensor,
+                memory_flags: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+
+        featuremaps_teacher = [filter_tensor(featuremap, memory_flags) for featuremap in featuremaps_teacher]
+        featuremaps_student = [filter_tensor(featuremap, memory_flags) for featuremap in featuremaps_student]
+        logits_student = filter_tensor(logits_student, memory_flags)
+        logits_teacher = filter_tensor(logits_teacher, memory_flags)
+
+
         width_losses = []
         heght_losses = []
         for featuremap_teacher, featuremap_student in zip(featuremaps_teacher, featuremaps_student):
@@ -121,4 +131,5 @@ class PODLoss(nn.Module):
         return self.width_coef * width_loss , self.height_coef*height_loss , self.flat_coef*flat_loss
 
 
-
+def filter_tensor(t: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+    return t[mask]
